@@ -2,932 +2,384 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-
-# =========================================================
-# PAGE CONFIGURATION
-# =========================================================
-
+# --------------------------------------------------
+# PAGE CONFIG
+# --------------------------------------------------
 st.set_page_config(
     page_title="Candidate Selection Prediction",
     page_icon="🎓",
     layout="wide"
 )
 
-
-# =========================================================
-# LOAD MODEL AND FILES
-# =========================================================
-
+# --------------------------------------------------
+# LOAD MODEL
+# --------------------------------------------------
 model = joblib.load("selected_or_rejected_model.pkl")
-
 feature_columns = joblib.load("feature_columns.pkl")
 
 country_freq = joblib.load("country_freq.pkl")
 city_freq = joblib.load("city_freq.pkl")
-previous_companies_freq = joblib.load(
-    "previous_companies_freq.pkl"
-)
-technical_skills_freq = joblib.load(
-    "technical_skills_freq.pkl"
-)
-programming_languages_freq = joblib.load(
-    "programming_languages_freq.pkl"
-)
-frameworks_freq = joblib.load(
-    "frameworks_freq.pkl"
-)
-databases_freq = joblib.load(
-    "databases_freq.pkl"
-)
-cloud_platform_freq = joblib.load(
-    "cloud_platform_freq.pkl"
-)
-preferred_location_freq = joblib.load(
-    "preferred_location_freq.pkl"
-)
+preferred_location_freq = joblib.load("preferred_location_freq.pkl")
+technical_skills_freq = joblib.load("technical_skills_freq.pkl")
+programming_languages_freq = joblib.load("programming_languages_freq.pkl")
+frameworks_freq = joblib.load("frameworks_freq.pkl")
+databases_freq = joblib.load("databases_freq.pkl")
+cloud_platform_freq = joblib.load("cloud_platform_freq.pkl")
+previous_companies_freq = joblib.load("previous_companies_freq.pkl")
 
+# --------------------------------------------------
+# LISTS
+# --------------------------------------------------
+education_levels = [
+    "High School","Diploma","Bachelor","Master","PhD"
+]
 
-# =========================================================
+universities = [
+    "Carnegie Mellon University","ETH Zurich",
+    "Georgia Institute of Technology","Harvard University",
+    "Imperial College London",
+    "Massachusetts Institute of Technology",
+    "National University of Singapore",
+    "Stanford University","Tsinghua University",
+    "University of California, Berkeley",
+    "University of Cambridge",
+    "University of Oxford",
+    "University of Toronto",
+    "University of Washington"
+]
+
+fields = [
+    "Computer Science","Cyber Security","Data Science",
+    "Electrical Engineering","Information Systems",
+    "Information Technology","Mathematics & Statistics",
+    "Software Engineering"
+]
+
+job_titles = [
+    "Backend Developer","Business Analyst","Cloud Engineer",
+    "Cyber Security Analyst","Data Scientist",
+    "Database Administrator","DevOps Engineer",
+    "Entry Level / Unemployed","Frontend Developer",
+    "Full Stack Developer","Machine Learning Engineer",
+    "Mobile App Developer","QA Engineer",
+    "Software Engineer","UI UX Designer"
+]
+
+job_roles = job_titles[:-1]
+
+certification_columns = [
+    "AWS Certified Developer",
+    "AWS Certified Solutions Architect",
+    "Certified Information Systems Security Professional (CISSP)",
+    "Certified Kubernetes Administrator (CKA)",
+    "Google Cloud Professional Data Engineer",
+    "HashiCorp Certified: Terraform Associate",
+    "Microsoft Certified: Azure Fundamentals",
+    "Oracle Certified Professional Java SE",
+    "Project Management Professional (PMP)",
+    "TensorFlow Developer Certificate",
+    "Not Applicable"
+]
+
+education_map = {
+    "High School":0,
+    "Diploma":1,
+    "Bachelor":2,
+    "Master":3,
+    "PhD":4
+}
+
+availability_map = {
+    "Immediate":0,
+    "15 Days":1,
+    "30 Days":2,
+    "60 Days":3,
+    "90 Days":4
+}
+
+# --------------------------------------------------
 # TITLE
-# =========================================================
-
+# --------------------------------------------------
 st.title("🎓 Candidate Selection Prediction")
+st.write("Enter candidate details below to predict whether the candidate is likely to be **Selected** or **Rejected**.")
 
-st.write(
-    "Enter the candidate details below to predict whether "
-    "the candidate is likely to be Selected or Rejected."
-)
-
-st.divider()
-
-
-# =========================================================
+# --------------------------------------------------
 # PERSONAL INFORMATION
-# =========================================================
-
+# --------------------------------------------------
 st.header("👤 Personal Information")
 
-col1, col2, col3 = st.columns(3)
+c1,c2,c3 = st.columns(3)
 
-with col1:
-    age = st.number_input(
-        "Age",
-        min_value=18,
-        max_value=70,
-        value=25,
-        step=1
-    )
+with c1:
+    age = st.number_input("Age",18,70,25)
 
-with col2:
-    gender = st.selectbox(
-        "Gender",
-        ["Female", "Male", "Other"]
-    )
+with c2:
+    gender = st.selectbox("Gender",["Female","Male","Other"])
 
-with col3:
-    country = st.text_input(
+with c3:
+    country = st.selectbox(
         "Country",
-        value="India"
+        sorted(country_freq.index.tolist())
     )
 
-col1, col2 = st.columns(2)
+c1,c2 = st.columns(2)
 
-with col1:
-    city = st.text_input(
+with c1:
+    city = st.selectbox(
         "City",
-        value="Hyderabad"
+        sorted(city_freq.index.tolist())
     )
 
-with col2:
-    preferred_location = st.text_input(
+with c2:
+    preferred_location = st.selectbox(
         "Preferred Location",
-        value="Flexible"
+        sorted(preferred_location_freq.index.tolist())
     )
 
-
-# =========================================================
+# --------------------------------------------------
 # EDUCATION
-# =========================================================
-
+# --------------------------------------------------
 st.header("🎓 Education")
 
-col1, col2, col3 = st.columns(3)
+c1,c2,c3 = st.columns(3)
 
-with col1:
-    highest_education = st.selectbox(
-        "Highest Education",
-        [
-            "High School",
-            "Diploma",
-            "Bachelor",
-            "Master",
-            "PhD"
-        ]
-    )
+with c1:
+    highest_education = st.selectbox("Highest Education",education_levels)
 
-with col2:
-    field_of_study = st.selectbox(
-        "Field of Study",
-        [
-            "Computer Science",
-            "Cyber Security",
-            "Data Science",
-            "Electrical Engineering",
-            "Information Systems",
-            "Information Technology",
-            "Mathematics & Statistics",
-            "Software Engineering"
-        ]
-    )
+with c2:
+    university = st.selectbox("University",universities)
 
-with col3:
-    graduation_year = st.number_input(
-        "Graduation Year",
-        min_value=1980,
-        max_value=2030,
-        value=2024,
-        step=1
-    )
+with c3:
+    field_of_study = st.selectbox("Field of Study",fields)
 
-cgpa = st.number_input(
-    "CGPA",
-    min_value=0.0,
-    max_value=10.0,
-    value=7.0,
-    step=0.1
-)
+c1,c2 = st.columns(2)
 
+with c1:
+    graduation_year = st.number_input("Graduation Year",1980,2035,2024)
 
-# =========================================================
+with c2:
+    cgpa = st.number_input("CGPA",0.0,10.0,7.5)
+
+# --------------------------------------------------
 # EXPERIENCE
-# =========================================================
-
+# --------------------------------------------------
 st.header("💼 Experience")
 
-col1, col2, col3 = st.columns(3)
+c1,c2,c3 = st.columns(3)
 
-with col1:
-    experience_years = st.number_input(
-        "Experience (Years)",
-        min_value=0,
-        max_value=50,
-        value=2,
-        step=1
-    )
+with c1:
+    experience_years = st.number_input("Experience (Years)",0,50,2)
 
-with col2:
-    projects_completed = st.number_input(
-        "Projects Completed",
-        min_value=0,
-        max_value=100,
-        value=5,
-        step=1
-    )
+with c2:
+    projects_completed = st.number_input("Projects Completed",0,100,5)
 
-with col3:
-    publications = st.number_input(
-        "Publications",
-        min_value=0,
-        max_value=100,
-        value=0,
-        step=1
-    )
+with c3:
+    publications = st.number_input("Publications",0,50,0)
 
-col1, col2 = st.columns(2)
+c1,c2 = st.columns(2)
 
-with col1:
-    current_job_title = st.selectbox(
-        "Current Job Title",
-        [
-            "Backend Developer",
-            "Business Analyst",
-            "Cloud Engineer",
-            "Cyber Security Analyst",
-            "Data Scientist",
-            "Database Administrator",
-            "DevOps Engineer",
-            "Entry Level / Unemployed",
-            "Frontend Developer",
-            "Full Stack Developer",
-            "Machine Learning Engineer",
-            "Mobile App Developer",
-            "QA Engineer",
-            "Software Engineer",
-            "UI UX Designer"
-        ]
-    )
+with c1:
+    current_job_title = st.selectbox("Current Job Title",job_titles)
 
-with col2:
-    job_role = st.selectbox(
-        "Job Role",
-        [
-            "Backend Developer",
-            "Business Analyst",
-            "Cloud Engineer",
-            "Cyber Security Analyst",
-            "Data Scientist",
-            "Database Administrator",
-            "DevOps Engineer",
-            "Frontend Developer",
-            "Full Stack Developer",
-            "Machine Learning Engineer",
-            "Mobile App Developer",
-            "QA Engineer",
-            "Software Engineer",
-            "UI UX Designer"
-        ]
-    )
+with c2:
+    job_role = st.selectbox("Job Role",job_roles)
 
-
-# =========================================================
+# --------------------------------------------------
 # SKILLS
-# =========================================================
-
+# --------------------------------------------------
 st.header("🛠️ Skills")
 
-technical_skills = st.text_input(
+technical_skills = st.selectbox(
     "Technical Skills",
-    value="Python"
+    sorted(technical_skills_freq.index.tolist())
 )
 
-programming_languages = st.text_input(
+programming_languages = st.selectbox(
     "Programming Languages",
-    value="Python"
+    sorted(programming_languages_freq.index.tolist())
 )
 
-frameworks = st.text_input(
+frameworks = st.selectbox(
     "Frameworks",
-    value="Scikit-learn"
+    sorted(frameworks_freq.index.tolist())
 )
 
-databases = st.text_input(
+databases = st.selectbox(
     "Databases",
-    value="MySQL"
+    sorted(databases_freq.index.tolist())
 )
 
-cloud_platform = st.text_input(
+cloud_platform = st.selectbox(
     "Cloud Platform",
-    value="AWS"
+    sorted(cloud_platform_freq.index.tolist())
 )
 
-
-# =========================================================
+# --------------------------------------------------
 # CERTIFICATIONS
-# =========================================================
-
+# --------------------------------------------------
 st.header("🏆 Certifications")
 
 certifications = st.multiselect(
     "Select Certifications",
-    [
-        "AWS Certified Developer",
-        "AWS Certified Solutions Architect",
-        "Certified Information Systems Security Professional (CISSP)",
-        "Certified Kubernetes Administrator (CKA)",
-        "Google Cloud Professional Data Engineer",
-        "HashiCorp Certified: Terraform Associate",
-        "Microsoft Certified: Azure Fundamentals",
-        "Oracle Certified Professional Java SE",
-        "Project Management Professional (PMP)",
-        "TensorFlow Developer Certificate",
-        "Not Applicable"
-    ]
+    certification_columns
 )
 
-
-# =========================================================
-# PROFESSIONAL SCORES
-# =========================================================
-
+# --------------------------------------------------
+# SCORES
+# --------------------------------------------------
 st.header("📊 Candidate Scores")
 
-col1, col2, col3 = st.columns(3)
+communication_score = st.slider("Communication Score",0,100,70)
+problem_solving_score = st.slider("Problem Solving Score",0,100,70)
+technical_test_score = st.slider("Technical Test Score",0,100,70)
+interview_score = st.slider("Interview Score",0,100,70)
+aptitude_score = st.slider("Aptitude Score",0,100,70)
+resume_quality_score = st.slider("Resume Quality Score",0,100,70)
 
-with col1:
-    communication_score = st.number_input(
-        "Communication Score",
-        min_value=0.0,
-        max_value=100.0,
-        value=70.0
-    )
-
-with col2:
-    problem_solving_score = st.number_input(
-        "Problem Solving Score",
-        min_value=0.0,
-        max_value=100.0,
-        value=70.0
-    )
-
-with col3:
-    technical_test_score = st.number_input(
-        "Technical Test Score",
-        min_value=0.0,
-        max_value=100.0,
-        value=70.0
-    )
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    interview_score = st.number_input(
-        "Interview Score",
-        min_value=0.0,
-        max_value=100.0,
-        value=70.0
-    )
-
-with col2:
-    aptitude_score = st.number_input(
-        "Aptitude Score",
-        min_value=0.0,
-        max_value=100.0,
-        value=70.0
-    )
-
-with col3:
-    resume_quality_score = st.number_input(
-        "Resume Quality Score",
-        min_value=0.0,
-        max_value=100.0,
-        value=70.0
-    )
-
-
-# =========================================================
-# RESUME INFORMATION
-# =========================================================
-
+# --------------------------------------------------
+# RESUME
+# --------------------------------------------------
 st.header("📄 Resume Information")
 
-col1, col2, col3 = st.columns(3)
+resume_length = st.number_input("Resume Length",0,10000,1200)
+keyword_match_percentage = st.slider("Keyword Match Percentage",0,100,75)
+ats_score = st.slider("ATS Score",0,100,80)
 
-with col1:
-    resume_length = st.number_input(
-        "Resume Length",
-        min_value=0,
-        max_value=10000,
-        value=1000,
-        step=1
-    )
-
-with col2:
-    keyword_match_percentage = st.number_input(
-        "Keyword Match Percentage",
-        min_value=0.0,
-        max_value=100.0,
-        value=70.0
-    )
-
-with col3:
-    ats_score = st.number_input(
-        "ATS Score",
-        min_value=0.0,
-        max_value=100.0,
-        value=70.0
-    )
-
-
-# =========================================================
+# --------------------------------------------------
 # JOB INFORMATION
-# =========================================================
-
+# --------------------------------------------------
 st.header("💰 Job Information")
 
-col1, col2 = st.columns(2)
+expected_salary = st.number_input("Expected Salary",0,10000000,600000)
 
-with col1:
-    expected_salary = st.number_input(
-        "Expected Salary",
-        min_value=0.0,
-        value=50000.0,
-        step=1000.0
-    )
+availability = st.selectbox(
+    "Availability",
+    list(availability_map.keys())
+)
 
-with col2:
-    availability = st.selectbox(
-        "Availability",
-        [
-            "Immediate",
-            "15 Days",
-            "30 Days",
-            "60 Days",
-            "90 Days"
-        ]
-    )
+employment_type = st.selectbox(
+    "Employment Type",
+    ["Full-Time","Internship","Part-Time"]
+)
 
-col1, col2 = st.columns(2)
+remote_preference = st.selectbox(
+    "Remote Preference",
+    ["On-site","Remote"]
+)
 
-with col1:
-    employment_type = st.selectbox(
-        "Employment Type",
-        [
-            "Full-Time",
-            "Internship",
-            "Part-Time"
-        ]
-    )
-
-with col2:
-    remote_preference = st.selectbox(
-        "Remote Preference",
-        [
-            "On-site",
-            "Remote"
-        ]
-    )
-
-
-# =========================================================
-# EXPERIENCE FLAGS
-# =========================================================
-
+# --------------------------------------------------
+# ADDITIONAL EXPERIENCE
+# --------------------------------------------------
 st.header("⭐ Additional Experience")
 
-col1, col2 = st.columns(2)
+internship_experience = st.radio(
+    "Internship Experience",
+    ["Yes","No"]
+)
 
-with col1:
-    internship_experience = st.selectbox(
-        "Internship Experience",
-        ["Yes", "No"]
-    )
+leadership_experience = st.radio(
+    "Leadership Experience",
+    ["Yes","No"]
+)
 
-with col2:
-    leadership_experience = st.selectbox(
-        "Leadership Experience",
-        ["Yes", "No"]
-    )
-
-
-# =========================================================
-# ENCODING
-# =========================================================
-
-education_map = {
-    "High School": 0,
-    "Diploma": 1,
-    "Bachelor": 2,
-    "Master": 3,
-    "PhD": 4
-}
-
-availability_map = {
-    "Immediate": 0,
-    "15 Days": 1,
-    "30 Days": 2,
-    "60 Days": 3,
-    "90 Days": 4
-}
-
-
-# =========================================================
+# --------------------------------------------------
 # PREDICTION
-# =========================================================
+# --------------------------------------------------
+if st.button("🔮 Predict Candidate Selection", use_container_width=True):
 
-st.divider()
+    input_data = {}
 
-if st.button(
-    "🔮 Predict Candidate Selection",
-    use_container_width=True
-):
-
-    # ---------------------------------------------
-    # Frequency encoding
-    # ---------------------------------------------
-
-    country_frequency = country_freq.get(country, 0)
-    city_frequency = city_freq.get(city, 0)
-
-    previous_companies_frequency = (
-        previous_companies_freq.get("", 0)
-    )
-
-    technical_skills_frequency = (
-        technical_skills_freq.get(
-            technical_skills,
-            0
-        )
-    )
-
-    programming_languages_frequency = (
-        programming_languages_freq.get(
-            programming_languages,
-            0
-        )
-    )
-
-    frameworks_frequency = (
-        frameworks_freq.get(
-            frameworks,
-            0
-        )
-    )
-
-    databases_frequency = (
-        databases_freq.get(
-            databases,
-            0
-        )
-    )
-
-    cloud_platform_frequency = (
-        cloud_platform_freq.get(
-            cloud_platform,
-            0
-        )
-    )
-
-    preferred_location_frequency = (
-        preferred_location_freq.get(
-            preferred_location,
-            0
-        )
-    )
-
-
-    # ---------------------------------------------
-    # Create initial input dictionary
-    # ---------------------------------------------
-
-    input_data = {
-
+    # Numeric
+    input_data.update({
         "age": age,
-
-        "highest_education":
-            education_map[highest_education],
-
+        "highest_education": education_map[highest_education],
         "cgpa": cgpa,
+        "graduation_year": graduation_year,
+        "experience_years": experience_years,
+        "projects_completed": projects_completed,
+        "publications": publications,
+        "communication_score": communication_score,
+        "problem_solving_score": problem_solving_score,
+        "technical_test_score": technical_test_score,
+        "interview_score": interview_score,
+        "aptitude_score": aptitude_score,
+        "expected_salary": expected_salary,
+        "availability": availability_map[availability],
+        "resume_quality_score": resume_quality_score,
+        "resume_length": resume_length,
+        "keyword_match_percentage": keyword_match_percentage,
+        "ats_score": ats_score,
+        "full_name_freq":1,
+        "country_freq": country_freq.get(country,0),
+        "city_freq": city_freq.get(city,0),
+        "preferred_location_freq": preferred_location_freq.get(preferred_location,0),
+        "previous_companies_freq":0,
+        "technical_skills_freq": technical_skills_freq.get(technical_skills,0),
+        "programming_languages_freq": programming_languages_freq.get(programming_languages,0),
+        "frameworks_freq": frameworks_freq.get(frameworks,0),
+        "databases_freq": databases_freq.get(databases,0),
+        "cloud_platform_freq": cloud_platform_freq.get(cloud_platform,0),
+    })
 
-        "graduation_year":
-            graduation_year,
-
-        "experience_years":
-            experience_years,
-
-        "projects_completed":
-            projects_completed,
-
-        "publications":
-            publications,
-
-        "communication_score":
-            communication_score,
-
-        "problem_solving_score":
-            problem_solving_score,
-
-        "technical_test_score":
-            technical_test_score,
-
-        "interview_score":
-            interview_score,
-
-        "aptitude_score":
-            aptitude_score,
-
-        "expected_salary":
-            expected_salary,
-
-        "availability":
-            availability_map[availability],
-
-        "resume_quality_score":
-            resume_quality_score,
-
-        "resume_length":
-            resume_length,
-
-        "keyword_match_percentage":
-            keyword_match_percentage,
-
-        "ats_score":
-            ats_score,
-
-        "full_name_freq": 1,
-
-        "country_freq":
-            country_frequency,
-
-        "city_freq":
-            city_frequency,
-
-        "previous_companies_freq":
-            previous_companies_frequency,
-
-        "technical_skills_freq":
-            technical_skills_frequency,
-
-        "programming_languages_freq":
-            programming_languages_frequency,
-
-        "frameworks_freq":
-            frameworks_frequency,
-
-        "databases_freq":
-            databases_frequency,
-
-        "cloud_platform_freq":
-            cloud_platform_frequency,
-
-        "preferred_location_freq":
-            preferred_location_frequency
-    }
-
-
-    # ---------------------------------------------
-    # Certification columns
-    # ---------------------------------------------
-
-    certification_columns = [
-        "AWS Certified Developer",
-        "AWS Certified Solutions Architect",
-        "Certified Information Systems Security Professional (CISSP)",
-        "Certified Kubernetes Administrator (CKA)",
-        "Google Cloud Professional Data Engineer",
-        "HashiCorp Certified: Terraform Associate",
-        "Microsoft Certified: Azure Fundamentals",
-        "Not Applicable",
-        "Oracle Certified Professional Java SE",
-        "Project Management Professional (PMP)",
-        "TensorFlow Developer Certificate"
-    ]
-
-    for cert in certification_columns:
-
-        input_data[cert] = (
-            1 if cert in certifications else 0
-        )
-
-
-    # ---------------------------------------------
     # Gender
-    # ---------------------------------------------
+    input_data["gender_Male"] = int(gender=="Male")
+    input_data["gender_Other"] = int(gender=="Other")
 
-    input_data["gender_Male"] = (
-        1 if gender == "Male" else 0
-    )
+    # University
+    for uni in universities:
+        input_data[f"university_{uni}"] = int(university==uni)
 
-    input_data["gender_Other"] = (
-        1 if gender == "Other" else 0
-    )
+    # Field
+    for field in fields:
+        input_data[f"field_of_study_{field}"] = int(field_of_study==field)
 
+    # Current Job
+    for title in job_titles:
+        input_data[f"current_job_title_{title}"] = int(current_job_title==title)
 
-    # ---------------------------------------------
-    # University columns
-    # ---------------------------------------------
-
-    university_columns = [
-        "Carnegie Mellon University",
-        "ETH Zurich",
-        "Georgia Institute of Technology",
-        "Harvard University",
-        "Imperial College London",
-        "Massachusetts Institute of Technology",
-        "National University of Singapore",
-        "Stanford University",
-        "Tsinghua University",
-        "University of California, Berkeley",
-        "University of Cambridge",
-        "University of Oxford",
-        "University of Toronto",
-        "University of Washington"
-    ]
-
-    # University was not included as an input above.
-    # Therefore all university columns are initialized to 0.
-
-    for university in university_columns:
-
-        column_name = (
-            "university_" + university
-        )
-
-        input_data[column_name] = 0
-
-
-    # ---------------------------------------------
-    # Field of study
-    # ---------------------------------------------
-
-    field_columns = [
-        "Computer Science",
-        "Cyber Security",
-        "Data Science",
-        "Electrical Engineering",
-        "Information Systems",
-        "Information Technology",
-        "Mathematics & Statistics",
-        "Software Engineering"
-    ]
-
-    for field in field_columns:
-
-        column_name = (
-            "field_of_study_" + field
-        )
-
-        input_data[column_name] = (
-            1 if field_of_study == field else 0
-        )
-
-
-    # ---------------------------------------------
-    # Current Job Title
-    # ---------------------------------------------
-
-    job_title_columns = [
-        "Backend Developer",
-        "Business Analyst",
-        "Cloud Engineer",
-        "Cyber Security Analyst",
-        "Data Scientist",
-        "Database Administrator",
-        "DevOps Engineer",
-        "Entry Level / Unemployed",
-        "Frontend Developer",
-        "Full Stack Developer",
-        "Machine Learning Engineer",
-        "Mobile App Developer",
-        "QA Engineer",
-        "Software Engineer",
-        "UI UX Designer"
-    ]
-
-    for title in job_title_columns:
-
-        column_name = (
-            "current_job_title_" + title
-        )
-
-        input_data[column_name] = (
-            1 if current_job_title == title else 0
-        )
-
-
-    # ---------------------------------------------
     # Job Role
-    # ---------------------------------------------
+    for role in job_roles:
+        input_data[f"job_role_{role}"] = int(job_role==role)
 
-    role_columns = [
-        "Backend Developer",
-        "Business Analyst",
-        "Cloud Engineer",
-        "Cyber Security Analyst",
-        "Data Scientist",
-        "Database Administrator",
-        "DevOps Engineer",
-        "Frontend Developer",
-        "Full Stack Developer",
-        "Machine Learning Engineer",
-        "Mobile App Developer",
-        "QA Engineer",
-        "Software Engineer",
-        "UI UX Designer"
-    ]
+    # Certifications
+    for cert in certification_columns:
+        input_data[cert] = int(cert in certifications)
 
-    for role in role_columns:
+    # Internship & Leadership
+    input_data["internship_experience_Yes"] = int(internship_experience=="Yes")
+    input_data["leadership_experience_Yes"] = int(leadership_experience=="Yes")
 
-        column_name = (
-            "job_role_" + role
-        )
+    # Employment
+    for emp in ["Full-Time","Internship","Part-Time"]:
+        input_data[f"employment_type_{emp}"] = int(employment_type==emp)
 
-        input_data[column_name] = (
-            1 if job_role == role else 0
-        )
+    # Remote
+    input_data["remote_preference_On-site"] = int(remote_preference=="On-site")
+    input_data["remote_preference_Remote"] = int(remote_preference=="Remote")
 
-
-    # ---------------------------------------------
-    # Internship and Leadership
-    # ---------------------------------------------
-
-    input_data[
-        "internship_experience_Yes"
-    ] = (
-        1 if internship_experience == "Yes"
-        else 0
-    )
-
-    input_data[
-        "leadership_experience_Yes"
-    ] = (
-        1 if leadership_experience == "Yes"
-        else 0
-    )
-
-
-    # ---------------------------------------------
-    # Employment Type
-    # ---------------------------------------------
-
-    input_data[
-        "employment_type_Full-Time"
-    ] = (
-        1 if employment_type == "Full-Time"
-        else 0
-    )
-
-    input_data[
-        "employment_type_Internship"
-    ] = (
-        1 if employment_type == "Internship"
-        else 0
-    )
-
-    input_data[
-        "employment_type_Part-Time"
-    ] = (
-        1 if employment_type == "Part-Time"
-        else 0
-    )
-
-
-    # ---------------------------------------------
-    # Remote Preference
-    # ---------------------------------------------
-
-    input_data[
-        "remote_preference_On-site"
-    ] = (
-        1 if remote_preference == "On-site"
-        else 0
-    )
-
-    input_data[
-        "remote_preference_Remote"
-    ] = (
-        1 if remote_preference == "Remote"
-        else 0
-    )
-
-
-    # =========================================================
-    # CREATE DATAFRAME
-    # =========================================================
-
-    input_df = pd.DataFrame([input_data])
-
-
-    # =========================================================
-    # ENSURE EXACT TRAINING COLUMNS
-    # =========================================================
-
-    input_df = input_df.reindex(
+    # Match training columns
+    input_df = pd.DataFrame([input_data]).reindex(
         columns=feature_columns,
         fill_value=0
     )
 
-
-    # =========================================================
-    # PREDICTION
-    # =========================================================
-
     prediction = model.predict(input_df)[0]
+    probability = model.predict_proba(input_df)[0]
 
-    probability = model.predict_proba(
-        input_df
-    )[0]
+    selected_prob = probability[1] * 100
+    rejected_prob = probability[0] * 100
 
-
-    selected_probability = probability[1] * 100
-    rejected_probability = probability[0] * 100
-
-
-    # =========================================================
-    # DISPLAY RESULT
-    # =========================================================
-
+    st.divider()
     st.subheader("📊 Prediction Result")
 
     if prediction == 1:
-
-        st.success(
-            "✅ Candidate is likely to be SELECTED"
-        )
-
+        st.success("✅ Candidate is likely to be SELECTED")
     else:
+        st.error("❌ Candidate is likely to be REJECTED")
 
-        st.error(
-            "❌ Candidate is likely to be REJECTED"
-        )
+    c1,c2 = st.columns(2)
 
+    c1.metric("Selected Probability", f"{selected_prob:.2f}%")
+    c2.metric("Rejected Probability", f"{rejected_prob:.2f}%")
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        st.metric(
-            "Selected Probability",
-            f"{selected_probability:.2f}%"
-        )
-
-    with col2:
-
-        st.metric(
-            "Rejected Probability",
-            f"{rejected_probability:.2f}%"
-        )
-
-
-    st.progress(
-        int(selected_probability)
-    )
+    st.progress(int(selected_prob))
