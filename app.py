@@ -18,7 +18,7 @@ st.set_page_config(
 # LOAD MODEL AND FILES
 # =========================================================
 
-model = joblib.load("selected_or_reject_model.pkl")
+model = joblib.load("selected_or_rejected_model.pkl")
 
 feature_columns = joblib.load("feature_columns.pkl")
 
